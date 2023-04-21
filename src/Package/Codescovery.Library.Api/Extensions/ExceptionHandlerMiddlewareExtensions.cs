@@ -4,29 +4,27 @@ using Codescovery.Library.DependencyInjection.Extensions;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
-using ExceptionHandlerMiddleware = Codescovery.Library.Api.Middlewares.ExceptionHandlerMiddleware;
+using DefaultExceptionHandlerMiddleware = Codescovery.Library.Api.Middlewares.ExceptionHandlerMiddleware;
 
 namespace Codescovery.Library.Api.Extensions;
 
 public static class ExceptionHandlerMiddlewareExtensions
 {
 
-    public static IServiceCollection AddDefaultExceptionHandlerMiddleware(this IServiceCollection services,
-        Func<IServiceProvider, IEnumerable<IRequestExceptionHandler>>? requestsExceptionHandlersFactory = null,
+    public static IServiceCollection AddRequestExceptionHandler<T>(this IServiceCollection services,
         ServiceLifetime serviceLifetime = ServiceLifetime.Scoped)
+    where T:class, IRequestExceptionHandler
     {
-        services.AddExceptionHandlerMiddleware<ExceptionHandlerMiddleware>(requestsExceptionHandlersFactory, serviceLifetime);
+        services.Add<IRequestExceptionHandler,T >(serviceLifetime);
         return services;
     }
-    public static IServiceCollection AddExceptionHandlerMiddleware<T>(this IServiceCollection services,
+    public static IServiceCollection AddRequestsExceptionHandlers(this IServiceCollection services,
         Func<IServiceProvider, IEnumerable<IRequestExceptionHandler>>? requestsExceptionHandlersFactory = null,
-        ServiceLifetime serviceLifetime = ServiceLifetime.Scoped) 
-        where T : class, IExceptionHandlerMiddleware<T>
+        ServiceLifetime serviceLifetime = ServiceLifetime.Scoped)
     {
         var handlers = requestsExceptionHandlersFactory?.Invoke(services.BuildServiceProvider());
         if (handlers != null)
             services.Add<IRequestsExceptionHandlers>(new RequestsExceptionHandlers(handlers), serviceLifetime);
-        services.Add<IExceptionHandlerMiddleware<T>, T>();
         return services;
     }
 
@@ -39,15 +37,9 @@ public static class ExceptionHandlerMiddlewareExtensions
     /// <param name="configureDelegate"></param>
     /// <returns></returns>
     /// <exception cref="NullReferenceException"></exception>
-    public static IApplicationBuilder UseExceptionHandling(this IApplicationBuilder app, IWebHostEnvironment env, Action<IApplicationBuilder,IWebHostEnvironment>? configureDelegate=null)
+    public static IApplicationBuilder UseDefaultExceptionHandlerMiddleWare(this IApplicationBuilder app, IWebHostEnvironment env, Func<IApplicationBuilder,IWebHostEnvironment, IApplicationBuilder>? configureDelegate=null)
     {
-        using var scope = app.ApplicationServices.CreateScope();
-        var services = scope.ServiceProvider.GetServices<ExceptionHandlerMiddleware>();
-        var hasExceptionHandler = services.Any();
-        if (!hasExceptionHandler) throw new  NullReferenceException("No IExceptionHandlerMiddleware found");
-        app.UseMiddleware<ExceptionHandlerMiddleware>();
-        configureDelegate?.Invoke(app, env);
-        return app;
+        return app.UseExceptionHandlerMiddleware<DefaultExceptionHandlerMiddleware>(env, configureDelegate);
     }
     /// <summary>
     /// Add ExceptionHandlerMiddleware to the application pipeline with the specified <see cref="IExceptionHandlerMiddleware{T}"/> type.
@@ -57,15 +49,15 @@ public static class ExceptionHandlerMiddlewareExtensions
     /// <param name="env"></param>
     /// <returns></returns>
     /// <exception cref="NullReferenceException"></exception>
-    public static IApplicationBuilder UseExceptionHandling<T>(this IApplicationBuilder app, IWebHostEnvironment env, Action<IApplicationBuilder, IWebHostEnvironment>? configureDelegate = null)
+    public static IApplicationBuilder UseExceptionHandlerMiddleware<T>(this IApplicationBuilder app, IWebHostEnvironment env, Func<IApplicationBuilder, IWebHostEnvironment,IApplicationBuilder>? configureDelegate = null)
         where T : class, IExceptionHandlerMiddleware<T>
     {
         using var scope = app.ApplicationServices.CreateScope();
-        var services = scope.ServiceProvider.GetServices<T>();
-        var hasExceptionHandler = services.Any();
-        if (!hasExceptionHandler) return app;
+        var requestExceptionHandler = scope.ServiceProvider.GetServices<IRequestExceptionHandler>();
+        var requestsExceptionHandlers = scope.ServiceProvider.GetService<IRequestsExceptionHandlers>();
+        if ((requestsExceptionHandlers == null || !requestsExceptionHandlers.Any()) && (requestExceptionHandler.Any()))
+            return configureDelegate?.Invoke(app, env) ?? app;
         app.UseMiddleware<T>();
-        configureDelegate?.Invoke(app, env);
-        return app;
+        return configureDelegate?.Invoke(app, env) ?? app;
     }
 }

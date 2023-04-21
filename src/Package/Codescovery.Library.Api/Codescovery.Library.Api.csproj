@@ -12,6 +12,8 @@
 		<Description>A pack with some common dependency injection methods</Description>
 		<PackageProjectUrl>https://codescovery.com/nuget/packages/library-dependency-injection</PackageProjectUrl>
 		<PackageLicenseFile>LICENSE</PackageLicenseFile>
+		<SignAssembly>True</SignAssembly>
+		<IncludeSymbols>True</IncludeSymbols>
 	</PropertyGroup>
 	<ItemGroup>
 		<PackageReference Include="Codescovery.Library.DependencyInjection" Version="1.0.0-beta2" />
@@ -46,7 +48,6 @@
 	  <Folder Include="Extensions\" />
 	  <Folder Include="Constants\" />
 	  <Folder Include="Exceptions\" />
-	  <Folder Include="Handlers\" />
 	  <Folder Include="Abstractions\" />
 	</ItemGroup>
 </Project>
