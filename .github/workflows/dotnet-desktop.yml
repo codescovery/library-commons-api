@@ -19,7 +19,7 @@ jobs:
       BUILD_CONFIG: 'Release'
       SOLUTION_PATH: 'src/Codescovery.Library.Api.sln'
       PACKAGE_PROJECT_PATH: 'src/Package/Codescovery.Library.Api/Codescovery.Library.Api.csproj'
-      TEST_PROJECT_PATH: 'src/Tests/Codescovery.Library.Api.Test/Codescovery.Library.Api.csproj'
+      TEST_PROJECT_PATH: 'src/Tests/Codescovery.Library.Api.Test/Codescovery.Library.Api.Test.csproj'
       NUGET_SOURCE_GITHUB: 'https://nuget.pkg.github.com/codescovery/index.json'
       NUGET_SOURCE_NUGET: 'https://api.nuget.org/v3/index.json'
     strategy:
