@@ -1,0 +1,159 @@
+name: .Net Publish Package
+
+on:
+  create:
+    branches:
+      - release/**
+    
+  push:
+      branches:
+        - main
+        - development 
+      paths-ignore:
+        - 'docs/**'
+        - 'README.md'
+        - 'LICENSE'
+jobs:
+  build:
+    env:
+      BUILD_CONFIG: 'Release'
+      SOLUTION_PATH: 'src/Codescovery.Library.Api.sln'
+      PACKAGE_PROJECT_PATH: 'src/Package/Codescovery.Library.Api/Codescovery.Library.Api.csproj'
+      TEST_PROJECT_PATH: 'src/Tests/Codescovery.Library.Api.Test/Codescovery.Library.Api.csproj'
+      NUGET_SOURCE_GITHUB: 'https://nuget.pkg.github.com/codescovery/index.json'
+      NUGET_SOURCE_NUGET: 'https://api.nuget.org/v3/index.json'
+    strategy:
+      matrix:
+        dotnet: [ '7.0.x' ]
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Get Build Version
+      if: startsWith(github.ref, 'refs/heads/release') ||  startsWith(github.ref, 'refs/heads/hotfix') 
+      run: |
+        Write-Host $Env:GITHUB_REF
+        $version =  $Env:GITHUB_REF.replace('refs/heads/release/','')
+        echo "BUILD_VERSION=$version" >> $Env:GITHUB_ENV
+        Write-Host $Env:BUILD_VERSION
+      shell: pwsh
+       
+    - name: Restore dependencies
+      run: dotnet restore ${{env.SOLUTION_PATH}}
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: ${{ matrix.dotnet }}
+
+    - name: Build
+      run: dotnet build ${{env.PACKAGE_PROJECT_PATH}} --configuration ${{env.BUILD_CONFIG}} --no-restore
+      
+    - name: Run tests
+      run: dotnet test ${{env.TEST_PROJECT_PATH}} /p:Configuration=${{env.BUILD_CONFIG}} --no-restore --verbosity normal
+      
+    - name: Pack
+      if: startsWith(github.ref, 'refs/heads/release') ||  startsWith(github.ref, 'refs/heads/hotfix') 
+      run: dotnet pack ${{env.PACKAGE_PROJECT_PATH}} --configuration ${{env.BUILD_CONFIG}} --no-build --no-restore -o ${{env.DOTNET_ROOT}}/artifact /p:Version=${{env.BUILD_VERSION}}
+    
+    - name: Publish GitHub Packages
+      if: startsWith(github.ref, 'refs/heads/release') ||  startsWith(github.ref, 'refs/heads/hotfix') 
+      run: dotnet nuget push ${{env.DOTNET_ROOT}}/artifact/*.nupkg --source ${{env.NUGET_SOURCE_GITHUB}} --api-key ${{secrets.NUGET_API_KEY_GITHUB}}
+      
+    - name: Publish Nuget Packages
+      if: startsWith(github.ref, 'refs/heads/release') ||  startsWith(github.ref, 'refs/heads/hotfix') 
+      run: dotnet nuget push ${{env.DOTNET_ROOT}}/artifact/*.nupkg --source ${{env.NUGET_SOURCE_NUGET}} --api-key ${{secrets.NUGET_API_KEY_NUGET}}  
+      
+    - name: Create Release Tag
+      if: startsWith(github.ref, 'refs/heads/release') ||  startsWith(github.ref, 'refs/heads/hotfix') 
+      uses: actions/github-script@v6
+      env:
+            RELEASE_VERSION_PREFIX: 'v'
+      with:
+        github-token: ${{secrets.GITHUB_TOKEN}}
+        script: |
+         
+                console.log("Initializing script");
+                console.log(`BUILD_VERSION: ${process.env.BUILD_VERSION}`)
+                console.log(`GITHUB_REF: ${process.env.GITHUB_REF}`)
+                const version = process.env.BUILD_VERSION;
+                const tagRefPrefix = 'refs/tags/';
+                const versionPrefix = process.env.RELEASE_VERSION_PREFIX;
+                const releaseTag = `${versionPrefix}${version}`;
+                const releaseTagRef = `${tagRefPrefix}${releaseTag}`;
+                
+                async function createReleaseTag(){
+                    try{
+                        const tagResponse = await github.rest.git.createRef({
+                          owner: context.repo.owner,
+                          repo: context.repo.repo,
+                          ref: releaseTagRef,
+                          sha: context.sha
+                        });
+                        return tagResponse;
+                    } catch (e) {
+                        const errorMessage = `Error while creating release ${releaseTagRef} tag. Error: ${e}`;
+                        console.error(errorMessage);
+                        core.setFailed(errorMessage)
+                    }
+                }
+                await createReleaseTag();
+
+    - name: Create Latest Tag
+      if: startsWith(github.ref, 'refs/heads/development')
+      uses: actions/github-script@v6
+      env:
+        LATEST_TAG_NAME: 'latest' 
+      with:
+        github-token: ${{secrets.GITHUB_TOKEN}}          
+        script: |
+            
+              console.log("Initializing script");
+              const tagRefPrefix = 'refs/tags/';
+              const latestTagName = process.env.LATEST_TAG_NAME;
+              const latestTagRef =`${tagRefPrefix}${latestTagName}`;
+              async function latestTagExists(){
+                try{
+                   const tagResponse = await github.rest.git.getRef({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    ref: `tags/${latestTagName}`
+                  });
+                   return true;
+                } catch (e) {
+                    const errorMessage = `Error while getting latest tag. Error : ${e}`;
+                    console.error(errorMessage);
+                    return false;
+                }
+              }
+              async function deleteLatestTagIfExists(){
+                const latestTagExistsResponse = await latestTagExists();
+                console.log(`LatestTagExists:${latestTagExistsResponse}`);
+                if(!latestTagExistsResponse) return;
+                console.log(`Latest tag tags/${latestTagName} exists. Deleting latest tag...`);
+                await github.rest.git.deleteRef({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    ref: `tags/${latestTagName}`
+                });
+                console.log(`Latest tag tags/${latestTagName} deleted.`);
+                  
+              }
+              async function createLatestTag(){
+                try {
+                    await deleteLatestTagIfExists();
+                    const tagResponse = await github.rest.git.createRef({
+                        owner: context.repo.owner,
+                        repo: context.repo.repo,
+                        ref: latestTagRef,
+                        sha: context.sha
+                    });
+                    return tagResponse;
+                } catch (e) {
+                    const errorMessage =`Error while creating latest ${latestTagRef} tag. Error: ${e}`;
+                    console.error(errorMessage);
+                    core.setFailed(errorMessage)
+                }
+              }
+              
+              await createLatestTag();
