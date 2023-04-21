@@ -11,9 +11,9 @@ namespace Codescovery.Library.Api.Extensions;
 public static class ExceptionHandlerMiddlewareExtensions
 {
 
-    public static IServiceCollection AddDefaultExceptionHandlerMiddleware<T>(this IServiceCollection services,
+    public static IServiceCollection AddDefaultExceptionHandlerMiddleware(this IServiceCollection services,
         Func<IServiceProvider, IEnumerable<IRequestExceptionHandler>>? requestsExceptionHandlersFactory = null,
-        ServiceLifetime serviceLifetime = ServiceLifetime.Scoped) where T : class, IExceptionHandlerMiddleware<T>
+        ServiceLifetime serviceLifetime = ServiceLifetime.Scoped)
     {
         services.AddExceptionHandlerMiddleware<ExceptionHandlerMiddleware>(requestsExceptionHandlersFactory, serviceLifetime);
         return services;

@@ -13,6 +13,7 @@ public class ApiConfiguration
         UseHealthCheck = true;
         UseHttpContextAccessor = true;
         UseDefaultJsonSerializerOptions = true;
+        UseControllers = true;
         Cors = new List<CorsConfiguration> { DefaultValues.AllowAllCorsConfiguration };
     }
     public const string SectionName = nameof(ApiConfiguration);
