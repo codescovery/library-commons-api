@@ -14,6 +14,7 @@
 		<PackageLicenseFile>LICENSE</PackageLicenseFile>
 		<SignAssembly>True</SignAssembly>
 		<IncludeSymbols>True</IncludeSymbols>
+		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
 	</PropertyGroup>
 	<ItemGroup>
 		<PackageReference Include="Codescovery.Library.DependencyInjection" Version="1.0.0-beta2" />
