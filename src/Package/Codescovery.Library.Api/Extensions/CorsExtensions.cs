@@ -1,5 +1,6 @@
 ﻿using Codescovery.Library.Api.Constants;
 using Codescovery.Library.Api.Entities.Configurations;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Cors.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -56,5 +57,21 @@ public static class CorsExtensions
             if (corsConfiguration.AllowedHeaders != null && corsConfiguration.AllowedHeaders.Any())
                 builder.WithHeaders(corsConfiguration.AllowedHeaders.ToArray());
         });
+    }
+    public static IApplicationBuilder ConfigureCorsUsingApiConfigurations(this IApplicationBuilder appBuilder, ApiConfiguration apiConfigurations)
+    {
+        if (!apiConfigurations.UseCors) return appBuilder;
+        if (apiConfigurations.Cors != null)
+        {
+            if (apiConfigurations.Cors != null && apiConfigurations.Cors.Any()) ;
+            {
+                foreach (var cors in apiConfigurations.Cors!)
+                    appBuilder.UseCors(cors.PolicyName);
+            }
+        }
+        else
+            appBuilder.UseCors(DefaultValues.CorsAllowAllDefaultPolicyName);
+
+        return appBuilder;
     }
 }

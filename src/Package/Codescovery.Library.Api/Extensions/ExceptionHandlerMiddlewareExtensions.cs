@@ -10,7 +10,17 @@ namespace Codescovery.Library.Api.Extensions;
 
 public static class ExceptionHandlerMiddlewareExtensions
 {
-
+    public static IServiceCollection AddDefaultExceptionHandlerMiddleware(this IServiceCollection services, ServiceLifetime serviceLifetime = ServiceLifetime.Scoped)
+    {
+        services.AddExceptionHandlerMiddleware<DefaultExceptionHandlerMiddleware>(serviceLifetime);
+        return services;
+    }
+    public static IServiceCollection AddExceptionHandlerMiddleware<T>(this IServiceCollection services, ServiceLifetime serviceLifetime = ServiceLifetime.Scoped)
+        where T : class, IExceptionHandlerMiddleware<T>
+    {
+        services.Add<IExceptionHandlerMiddleware<T>, T>(serviceLifetime);
+        return services;
+    }
     public static IServiceCollection AddRequestExceptionHandler<T>(this IServiceCollection services,
         ServiceLifetime serviceLifetime = ServiceLifetime.Scoped)
     where T:class, IRequestExceptionHandler
@@ -19,15 +29,11 @@ public static class ExceptionHandlerMiddlewareExtensions
         return services;
     }
     public static IServiceCollection AddRequestsExceptionHandlers(this IServiceCollection services,
-        Func<IServiceProvider, IEnumerable<IRequestExceptionHandler>>? requestsExceptionHandlersFactory = null,
         ServiceLifetime serviceLifetime = ServiceLifetime.Scoped)
     {
-        var handlers = requestsExceptionHandlersFactory?.Invoke(services.BuildServiceProvider());
-        if (handlers != null)
-            services.Add<IRequestsExceptionHandlers>(new RequestsExceptionHandlers(handlers), serviceLifetime);
+        services.Add<IRequestsExceptionHandlers, RequestsExceptionHandlers>(serviceLifetime);
         return services;
     }
-
     /// <summary>
     /// Add ExceptionHandlerMiddleware to the application pipeline with the specified <see cref="IExceptionHandlerMiddleware{T}"/> type.
     /// This method should be the top most middleware in the pipeline, else it will not be able to catch exceptions from other middlewares.
@@ -53,11 +59,16 @@ public static class ExceptionHandlerMiddlewareExtensions
         where T : class, IExceptionHandlerMiddleware<T>
     {
         using var scope = app.ApplicationServices.CreateScope();
+        var exceptionHandlerMiddleware = scope.ServiceProvider.GetService<IExceptionHandlerMiddleware<T>>();
+        if (exceptionHandlerMiddleware == null)
+            throw new NullReferenceException($"The {nameof(IExceptionHandlerMiddleware<T>)} is not registered in the service provider. Please register it using the {nameof(AddExceptionHandlerMiddleware)} or {nameof(AddDefaultExceptionHandlerMiddleware)} method.");
+
+
         var requestExceptionHandler = scope.ServiceProvider.GetServices<IRequestExceptionHandler>();
         var requestsExceptionHandlers = scope.ServiceProvider.GetService<IRequestsExceptionHandlers>();
         if ((requestsExceptionHandlers == null || !requestsExceptionHandlers.Any()) && (requestExceptionHandler.Any()))
             return configureDelegate?.Invoke(app, env) ?? app;
-        app.UseMiddleware<T>();
+        app.UseMiddleware<IExceptionHandlerMiddleware<T>>();
         return configureDelegate?.Invoke(app, env) ?? app;
     }
 }

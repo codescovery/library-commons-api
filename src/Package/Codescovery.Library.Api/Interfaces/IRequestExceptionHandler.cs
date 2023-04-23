@@ -6,6 +6,6 @@ namespace Codescovery.Library.Api.Interfaces;
 public interface IRequestExceptionHandler
 {
     bool CanHandle(Exception exception);
-    Task<IRequestExceptionHandlerStatus> HandleExceptionAsync(HttpContext context, Exception exception, CancellationToken cancellationToken = default);
+    Task HandleExceptionAsync(HttpContext context, Exception exception, CancellationToken cancellationToken = default);
     HttpStatusCode StatusCodeFromExceptionType(Exception exception);
 }

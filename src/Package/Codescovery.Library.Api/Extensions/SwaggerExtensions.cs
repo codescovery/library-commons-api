@@ -1,6 +1,9 @@
 ﻿using Codescovery.Library.Api.Attributes.Filters;
+using Codescovery.Library.Api.Constants;
 using Codescovery.Library.Api.Entities.Configurations;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using Microsoft.OpenApi.Models;
 
 namespace Codescovery.Library.Api.Extensions;
@@ -45,4 +48,18 @@ public static class SwaggerExtensions
         });
         return services;
     }
+
+    public static IApplicationBuilder ConfigureSwaggerUsingApiConfigurations(this IApplicationBuilder appBuilder, ApiConfiguration apiConfigurations)
+    {
+        if (!apiConfigurations.UseSwagger) return appBuilder;
+        appBuilder.UseSwagger();
+        appBuilder.UseSwaggerUI(c =>
+        {
+            c.SwaggerEndpoint(apiConfigurations.Swagger!.Endpoint,
+                apiConfigurations.Swagger.Name);
+        });
+        return appBuilder;
+    }
+
+    
 }

@@ -14,7 +14,10 @@ public class ApiConfiguration
         UseHttpContextAccessor = true;
         UseDefaultJsonSerializerOptions = true;
         UseControllers = true;
+        UseHealthCheck = true;
+        UseHttpsRedirection = true;
         Cors = new List<CorsConfiguration> { DefaultValues.AllowAllCorsConfiguration };
+        Swagger = new SwaggerConfiguration();
     }
     public const string SectionName = nameof(ApiConfiguration);
     [JsonPropertyName("useCors")]
@@ -30,6 +33,9 @@ public class ApiConfiguration
     [JsonPropertyName("useHttpContextAccessor")]
     [ConfigurationKeyName("useHttpContextAccessor")]
     public bool UseHttpContextAccessor { get; set; }
+    [JsonPropertyName("useHttpsRedirection")]
+    [ConfigurationKeyName("useHttpsRedirection")]
+    public bool UseHttpsRedirection { get; set; }
 
     [JsonPropertyName("useDefaultJsonSerializerOptions")]
     [ConfigurationKeyName("useDefaultJsonSerializerOptions")]

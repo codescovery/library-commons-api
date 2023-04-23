@@ -11,7 +11,7 @@ public  static class ResultHandlerExtensions
 {
     public static IServiceCollection AddDefaultResultsHandler(this IServiceCollection services, ServiceLifetime lifetime = ServiceLifetime.Scoped)
     {
-        services.Add<IResultsHandlers, DefaultResultsHandlers>(lifetime);
+        services.AddResultsHandler<DefaultResultsHandlers>(lifetime);
         return services;
     }
 
