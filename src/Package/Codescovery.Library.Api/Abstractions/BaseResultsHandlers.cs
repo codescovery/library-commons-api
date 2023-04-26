@@ -1,4 +1,5 @@
-﻿using Codescovery.Library.Api.Interfaces;
+﻿using Codescovery.Library.Api.Handlers;
+using Codescovery.Library.Api.Interfaces;
 
 namespace Codescovery.Library.Api.Abstractions;
 
@@ -13,14 +14,16 @@ public abstract class BaseResultsHandlers:IResultsHandlers
         
 
     public virtual IEnumerable<IResultHandler>? Handlers { get; }
-    public virtual IResultHandler? GetHandler<T>(T? result = default)
+    public virtual IResultHandler GetHandler<T>(T? result = default)
     {
-        return Handlers?.FirstOrDefault(handler => handler.GetType() == typeof(T));
+        var handler = Handlers?.FirstOrDefault(handler => handler.GetType() == typeof(T));
+        return handler ?? new NoHandlerCanHandleTypeHandler();
     }
 
-    public virtual IResultHandler? GetFirstThatCanHandle<T>(T? result = default)
+    public virtual IResultHandler GetFirstThatCanHandle<T>(T? result = default)
     {
-        return Handlers?.FirstOrDefault(handler => handler.CanHandle(result));
+        var handler = Handlers?.FirstOrDefault(handler => handler.CanHandle(result));
+        return handler ?? new NoHandlerCanHandleTypeHandler();
     }
 
     public virtual IEnumerable<IResultHandler> GetHandlersThatCanHandle<T>(T? result = default)
