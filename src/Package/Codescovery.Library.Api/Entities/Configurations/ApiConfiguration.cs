@@ -16,7 +16,7 @@ public class ApiConfiguration
         UseControllers = true;
         UseHealthCheck = true;
         UseHttpsRedirection = true;
-        Cors = new List<CorsConfiguration> { DefaultValues.AllowAllCorsConfiguration };
+        Cors = new List<CorsConfiguration> ();
         Swagger = new SwaggerConfiguration();
     }
     public const string SectionName = nameof(ApiConfiguration);

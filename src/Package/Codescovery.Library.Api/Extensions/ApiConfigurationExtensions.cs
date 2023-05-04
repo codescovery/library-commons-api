@@ -15,8 +15,6 @@ public static class ApiConfigurationExtensions
         var apiConfiguration = apiConfigurationSection.Get<ApiConfiguration>();
         if (apiConfiguration == null)
             throw new NullReferenceException($"Unable to get a deserialized {nameof(ApiConfiguration)} from section with name {sectionName}");
-        if (apiConfiguration.UseCors)
-            services.ConfigureCorsDependency(apiConfiguration.Cors, corsAllowAllIfNotConfigured);
         if (apiConfiguration.UseSwagger)
             services.ConfigureSwaggerDependency(apiConfiguration.Swagger);
         if (apiConfiguration.UseHealthCheck)
@@ -31,6 +29,4 @@ public static class ApiConfigurationExtensions
 
         return services;
     }
-
-
 }
