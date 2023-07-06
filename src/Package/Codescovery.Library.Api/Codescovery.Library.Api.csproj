@@ -43,10 +43,11 @@
 	</ItemGroup>
 	<ItemGroup>
 	  <Folder Include="Entities\Configurations\" />
-	  <Folder Include="Interfaces\" />
+	  <Folder Include="Interfaces\Attributes\" />
 	  <Folder Include="Middlewares\" />
 	  <Folder Include="Extensions\" />
 	  <Folder Include="Constants\" />
 	  <Folder Include="Abstractions\" />
+	  <Folder Include="Conventions\" />
 	</ItemGroup>
 </Project>
