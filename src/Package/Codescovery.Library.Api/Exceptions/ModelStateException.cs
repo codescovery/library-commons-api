@@ -8,7 +8,7 @@ public class ModelStateException : Exception
     public const string DefaultMessage = "Error while validating request model";
 
     public ModelStateException(ModelStateDictionary modelStateDictionary, string? aditionalMessage = null, Exception? innerException = null) :
-        base($"{DefaultMessage}{(aditionalMessage.IsNullOrWhiteSpace() ? string.Empty : $" AditionalMessage: {aditionalMessage}")}",
+        base($"{DefaultMessage}{(aditionalMessage == null || aditionalMessage.IsNullOrWhiteSpace() ? string.Empty : $" AditionalMessage: {aditionalMessage}")}",
             innerException)
     {
         Errors = modelStateDictionary.Values

@@ -18,18 +18,19 @@ where TController : BaseApiController<TController>
     
     protected string? DecodeBase64(Base64Encoded? base64Encoded)
     {
-        return base64Encoded;
+        return base64Encoded ?? string.Empty;
     }
 
     protected Base64Encoded? DecodeBase64(Base64Decoded? base64Decoded)
     {
-        return base64Decoded;
+        return base64Decoded ?? string.Empty;
     }
 
     protected virtual T? Deserialize<T>(string? json, JsonSerializerOptions? options = null, bool throwExceptionOnError=false,T? defaultValue=null) where T : class
     {
         try
         {
+            if (string.IsNullOrWhiteSpace(json)) return null;
             return json.IsNullOrEmptyOrWhiteSpace() ? null : JsonSerializer.Deserialize<T>(json!, options);
         }
         catch (Exception e)
@@ -64,8 +65,9 @@ where TController : BaseApiController<TController>
     {
         try
         {
-            var filterDecoded = (Base64Decoded)filterEncoded;
-            return ((string)filterDecoded).IsNullOrEmptyOrWhiteSpace()
+            if(filterEncoded == null) return null;
+            var filterDecoded = (Base64Decoded)filterEncoded!;
+            return ((string?)filterDecoded).IsNullOrWhiteSpace()
                 ? null
                 : Deserialize<FilterRequest>(filterDecoded);
 
