@@ -3,9 +3,9 @@ using Codescovery.Library.Api.Interfaces;
 
 namespace Codescovery.Library.Api.Abstractions;
 
-public abstract class BaseResultsHandlers:IResultsHandlers
+public abstract class BaseResponseHandlers:IResponseHandlers
 {
-    protected BaseResultsHandlers(IEnumerable<IResultHandler> handlers)
+    protected BaseResponseHandlers(IEnumerable<IResponseHandler> handlers)
     {
         Handlers = handlers;
     }
@@ -13,22 +13,22 @@ public abstract class BaseResultsHandlers:IResultsHandlers
 
         
 
-    public virtual IEnumerable<IResultHandler>? Handlers { get; }
-    public virtual IResultHandler GetHandler<T>(T? result = default)
+    public virtual IEnumerable<IResponseHandler>? Handlers { get; }
+    public virtual IResponseHandler GetHandler<T>(T? result = default)
     {
         var handler = Handlers?.FirstOrDefault(handler => handler.GetType() == typeof(T));
         return handler ?? new NoHandlerCanHandleTypeHandler();
     }
 
-    public virtual IResultHandler GetFirstThatCanHandle<T>(T? result = default)
+    public virtual IResponseHandler GetFirstThatCanHandle<T>(T? result = default)
     {
         var handler = Handlers?.FirstOrDefault(handler => handler.CanHandle(result));
         return handler ?? new NoHandlerCanHandleTypeHandler();
     }
 
-    public virtual IEnumerable<IResultHandler> GetHandlersThatCanHandle<T>(T? result = default)
+    public virtual IEnumerable<IResponseHandler> GetHandlersThatCanHandle<T>(T? result = default)
     {
-        return Handlers?.Where(handler => handler.CanHandle(result)) ?? Enumerable.Empty<IResultHandler>();
+        return Handlers?.Where(handler => handler.CanHandle(result)) ?? Enumerable.Empty<IResponseHandler>();
     }
 
     public virtual bool HasHandlers()

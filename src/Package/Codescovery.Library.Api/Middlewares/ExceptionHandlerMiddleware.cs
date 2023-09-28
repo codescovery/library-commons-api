@@ -1,10 +1,10 @@
 ﻿using Codescovery.Library.Api.Exceptions;
 using Codescovery.Library.Api.Interfaces;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
 namespace Codescovery.Library.Api.Middlewares;
-
 internal class ExceptionHandlerMiddleware:IExceptionHandlerMiddleware<ExceptionHandlerMiddleware>
 {
     public ILogger<ExceptionHandlerMiddleware>? Logger { get; }

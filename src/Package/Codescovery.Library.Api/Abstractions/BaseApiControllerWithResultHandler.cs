@@ -5,11 +5,11 @@ namespace Codescovery.Library.Api.Abstractions;
 
 public class BaseApiControllerWithResultHandler<TController> : BaseApiController<TController> where TController : BaseApiController<TController>
 {
-    public IResultsHandlers ResultsHandlers { get; }
+    public IResponseHandlers ResponseHandlers { get; }
 
-    public BaseApiControllerWithResultHandler(IResultsHandlers resultsHandlers, ILogger<TController> logger) : base(logger)
+    public BaseApiControllerWithResultHandler(IResponseHandlers responseHandlers, ILogger<TController> logger) : base(logger)
     {
-        ResultsHandlers = resultsHandlers;
+        ResponseHandlers = responseHandlers;
     }
 
 }

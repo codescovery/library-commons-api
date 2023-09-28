@@ -3,9 +3,9 @@ using Codescovery.Library.Api.Interfaces;
 
 namespace Codescovery.Library.Api.Handlers;
 
-internal class DefaultResultsHandlers:BaseResultsHandlers
+internal class DefaultResponseHandlers:BaseResponseHandlers
 {
-    public DefaultResultsHandlers(IEnumerable<IResultHandler> handlers) : base(handlers)
+    public DefaultResponseHandlers(IEnumerable<IResponseHandler> handlers) : base(handlers)
     {
     }
     
