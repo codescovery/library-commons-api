@@ -17,13 +17,17 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Tests\" />
+    <ProjectReference Include="..\..\Package\Codescovery.Library.Api\Codescovery.Library.Api.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <None Update="Configurations\appsettings.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Tests\" />
   </ItemGroup>
 
 </Project>

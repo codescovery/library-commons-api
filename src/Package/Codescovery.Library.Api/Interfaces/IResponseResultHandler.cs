@@ -3,8 +3,8 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Codescovery.Library.Api.Interfaces;
 
-public interface IResponseResultHandler:IResponseHandler
+public interface IResponseResultHandler
 {
-   new bool CanHandle<T>(T? result = default) where T: IResult<T>;
-   new Task<IActionResult> HandleResponseAsync<T>(T? entity = default, CancellationToken cancellationToken = default) where T: IResult<T>;
+    bool CanHandle<T>(IResult<T>? result = default);
+    Task<IActionResult> HandleResponseAsync<T>(IResult<T>? entity = default, CancellationToken cancellationToken = default);
 }
