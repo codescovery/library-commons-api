@@ -6,5 +6,5 @@ namespace Codescovery.Library.Api.Interfaces;
 public interface IResponseResultHandler
 {
     bool CanHandle<T>(IResult<T>? result = default);
-    Task<IActionResult> HandleResponseAsync<T>(IResult<T>? entity = default, CancellationToken cancellationToken = default);
+    Task<IActionResult> HandleResponseAsync<T>(IResult<T>? entity = default, CancellationToken cancellationToken = default) where T:class;
 }

@@ -26,7 +26,7 @@ internal class NoHandlerCanHandleTypeHandler:IResponseHandler,IResponseResultHan
         return true;
     }
 
-    public Task<IActionResult> HandleResponseAsync<T>(IResult<T>? entity = default, CancellationToken cancellationToken = default)
+    public Task<IActionResult> HandleResponseAsync<T>(IResult<T>? entity = default, CancellationToken cancellationToken = default) where T : class
     {
         return Task.FromResult(new ObjectResult($"There isn't a handler that can handle result type {typeof(T).Name}")
         {
