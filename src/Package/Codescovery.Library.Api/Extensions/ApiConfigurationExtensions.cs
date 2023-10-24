@@ -8,7 +8,8 @@ namespace Codescovery.Library.Api.Extensions;
 public static class ApiConfigurationExtensions
 {
 
-    public static IServiceCollection ConfigureUsingApiConfiguration(this IServiceCollection services, IConfiguration configuration, bool corsAllowAllIfNotConfigured = true, string sectionName = ApiConfiguration.SectionName)
+    public static IServiceCollection ConfigureUsingApiConfiguration(this IServiceCollection services, IConfiguration configuration, bool corsAllowAllIfNotConfigured = true, string sectionName = ApiConfiguration.SectionName,
+        Action<IMvcBuilder>? configureMvcBuilder = null)
     {
         var apiConfigurationSection = configuration.GetSection(sectionName);
         if (apiConfigurationSection == null) throw new NullReferenceException($"Unable to get the api configuration section from {sectionName}");
@@ -23,8 +24,12 @@ public static class ApiConfigurationExtensions
             services.AddHttpContextAccessor();
         if (apiConfiguration.UseDefaultJsonSerializerOptions)
             services.AddDefaultJsonSerializeOptions();
-        if(apiConfiguration.UseControllers)
-            services.AddControllers();
+        if (apiConfiguration.UseControllers)
+            if(configureMvcBuilder == null)
+                services.AddControllers();
+            else
+              configureMvcBuilder.Invoke(services.AddControllers());
+        
         services.Configure<ApiConfiguration>(apiConfigurationSection);
 
         return services;
