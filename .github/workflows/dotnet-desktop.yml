@@ -24,11 +24,11 @@ jobs:
       NUGET_SOURCE_NUGET: 'https://api.nuget.org/v3/index.json'
     strategy:
       matrix:
-        dotnet: [ '7.0.x' ]
+        dotnet: [ '9.0.x' ]
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Get Build Version
       if: startsWith(github.ref, 'refs/heads/release') ||  startsWith(github.ref, 'refs/heads/hotfix') 
       run: |
@@ -37,15 +37,12 @@ jobs:
         echo "BUILD_VERSION=$version" >> $Env:GITHUB_ENV
         Write-Host $Env:BUILD_VERSION
       shell: pwsh
-       
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ matrix.dotnet }}       
     - name: Restore dependencies
       run: dotnet restore ${{env.SOLUTION_PATH}}
-
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v3
-      with:
-        dotnet-version: ${{ matrix.dotnet }}
-
     - name: Build
       run: dotnet build ${{env.PACKAGE_PROJECT_PATH}} --configuration ${{env.BUILD_CONFIG}} --no-restore
       
@@ -66,7 +63,7 @@ jobs:
       
     - name: Create Release Tag
       if: startsWith(github.ref, 'refs/heads/release') ||  startsWith(github.ref, 'refs/heads/hotfix') 
-      uses: actions/github-script@v6
+      uses: actions/github-script@v7
       env:
             RELEASE_VERSION_PREFIX: 'v'
       with:
@@ -101,7 +98,7 @@ jobs:
 
     - name: Create Latest Tag
       if: startsWith(github.ref, 'refs/heads/development')
-      uses: actions/github-script@v6
+      uses: actions/github-script@v7
       env:
         LATEST_TAG_NAME: 'latest' 
       with:
@@ -157,3 +154,23 @@ jobs:
               }
               
               await createLatestTag();
+    - name: Delete Branch
+      if: startsWith(github.ref, 'refs/heads/release') || startsWith(github.ref, 'refs/heads/hotfix')
+      uses: actions/github-script@v7
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        script: |
+          console.log(`Deleting branch: ${context.ref}`);
+          const branch = context.ref.replace('refs/heads/', '');
+          try {
+              await github.rest.git.deleteRef({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                ref: `heads/${branch}`,
+              });
+              console.log(`Branch ${branch} deleted successfully.`);
+          } catch (e) {
+              const errorMessage = `Error while deleting branch ${branch}. Error: ${e}`;
+              console.error(errorMessage);
+              core.setFailed(errorMessage);
+          }
